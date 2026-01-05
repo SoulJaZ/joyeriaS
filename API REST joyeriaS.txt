@@ -1,0 +1,183 @@
+API REST joyeriaS.
+
+	Definir qué endpoints existen, qué hacen, qué reciben y qué devuelven:
+	Programar rápido y sin improvisar
+	Mantener el control total del backend
+	Escalar sin romper nada
+	Integrar pagos y frontend fácilmente
+
+Principios de la API
+
+✔ RESTful
+✔ JSON
+✔ Stateless
+✔ Versionada
+✔ Segura
+
+URL base
+/api/v1
+
+Estructura de carpetas
+src/
+ ├── routes/
+ ├── controllers/
+ ├── services/
+ ├── models/
+ ├── middlewares/
+ ├── config/
+ ├── utils/
+ └── app.js
+👉 Regla de oro:
+
+routes → define rutas
+controllers → reciben request / devuelven response
+services → lógica de negocio
+models → acceso a BD
+middlewares → auth, validaciones
+
+Módulos de la API
+
+🔐 1. AUTENTICACIÓN
+POST – Registro
+POST /api/v1/auth/register
+
+
+Body:
+
+{
+  "nombre": "Juan Pérez",
+  "email": "juan@email.com",
+  "password": "123456",
+  "telefono": "3001234567"
+}
+
+POST – Login
+POST /api/v1/auth/login
+
+
+Respuesta:
+
+{
+  "token": "jwt_token",
+  "user": {
+    "id": 1,
+    "nombre": "Juan Pérez",
+    "rol": "CLIENTE"
+  }
+}
+
+👤 2. USUARIOS
+GET – Perfil del usuario
+GET /api/v1/users/profile
+
+
+🔒 Requiere JWT
+
+💍 3. PRODUCTOS
+GET – Listar productos
+GET /api/v1/products
+
+
+Query params:
+
+?category=1
+?precio_min=100000
+?precio_max=500000
+
+GET – Detalle del producto
+GET /api/v1/products/{id}
+
+POST – Crear producto (ADMIN)
+POST /api/v1/products
+
+
+🔒 Admin
+
+PUT – Actualizar producto (ADMIN)
+PUT /api/v1/products/{id}
+
+DELETE – Desactivar producto (ADMIN)
+DELETE /api/v1/products/{id}
+
+
+⚠️ Eliminación lógica
+
+🖼️ 4. IMÁGENES DE PRODUCTO
+POST – Subir imagen
+POST /api/v1/products/{id}/images
+
+DELETE – Eliminar imagen
+DELETE /api/v1/images/{id}
+
+🛒 5. CARRITO
+GET – Ver carrito activo
+GET /api/v1/cart
+
+POST – Agregar producto
+POST /api/v1/cart/items
+
+
+Body:
+
+{
+  "product_id": 5,
+  "cantidad": 2
+}
+
+PUT – Actualizar cantidad
+PUT /api/v1/cart/items/{id}
+
+DELETE – Eliminar producto
+DELETE /api/v1/cart/items/{id}
+
+🧾 6. PEDIDOS
+POST – Crear pedido
+POST /api/v1/orders
+
+
+👉 Convierte el carrito en pedido
+
+GET – Historial de pedidos
+GET /api/v1/orders
+
+GET – Detalle de pedido
+GET /api/v1/orders/{id}
+
+💳 7. PAGOS
+POST – Realizar pago
+POST /api/v1/payments
+
+
+Body:
+
+{
+  "order_id": 10,
+  "metodo_pago": "tarjeta"
+}
+
+GET – Estado del pago
+GET /api/v1/payments/{id}
+
+🧮 8. FACTURAS
+GET – Ver factura
+GET /api/v1/invoices/{order_id}
+
+🛠️ 9. ADMINISTRACIÓN
+GET – Pedidos (ADMIN)
+GET /api/v1/admin/orders
+
+PUT – Cambiar estado pedido
+PUT /api/v1/admin/orders/{id}/status
+
+Flujo real de compra (API)
+Login
+ ↓
+GET /products
+ ↓
+POST /cart/items
+ ↓
+POST /orders
+ ↓
+POST /payments
+ ↓
+GET /invoices/{order_id}
