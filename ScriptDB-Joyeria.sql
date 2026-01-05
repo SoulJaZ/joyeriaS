@@ -133,3 +133,42 @@ foreign key (order_id) references orders(id)
 );
 -- Pagos
 CREATE INDEX idx_payments_order ON payments(order_id);
+
+-- Reglas de negocio críticas
+-- Regla 1: Un usuario solo puede tener un carrito activo
+CREATE UNIQUE INDEX uq_user_cart_activo
+ON carts(user_id, estado);
+
+-- Triggers (automatización crítica)
+-- Trigger 1: Calcular subtotal automáticamente
+create trigger trg_order_items_subtotal
+before insert on order_items
+for each row
+set new.subtotal = new.cantidad * new.precio_unitario;
+
+-- Trigger 2: Actualizar total del pedido
+create trigger trg_update_order_total
+after insert on order_items
+for each row
+update orders
+set total = (
+	select sum(subtotal)
+    from order_items
+    where order_id = new.order_id
+)
+where id = new.order_id;
+
+-- Trigger 3: Descontar stock SOLO cuando el pago es aprobado
+delimiter $$
+create trigger trg_discount_stock
+after update on payments
+for each row
+begin
+	if old.estado <> 'aprobado' and new.estado = 'aprobado' then
+		update products p
+		join order_items oi on p.id = oi.product_id
+		set p.stock = p.stock - oi.cantidad
+		where oi.order_id = new.order_id;
+    end if;
+end$$
+delimiter ;
